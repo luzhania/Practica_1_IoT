@@ -26,11 +26,11 @@ public:
 class UltrasonicSensor
 {
 private:
-  int triggerPin;
-  int echoPin;
+  unsigned int triggerPin;
+  unsigned int echoPin;
 
 public:
-  UltrasonicSensor(int trigger, int echo)
+  UltrasonicSensor(unsigned int trigger, unsigned int echo)
   {
     triggerPin = trigger;
     echoPin = echo;
@@ -48,12 +48,12 @@ public:
     return pulseIn(echoPin, HIGH);
   }
 
-  int getDistanceInCM()
+  unsigned int getDistanceInCM()
   {
     return 0.01723 * readDistance();
   }
 
-  int getDistanceInInches()
+  unsigned int getDistanceInInches()
   {
     return getDistanceInCM() / 2.54;
   }
@@ -96,8 +96,9 @@ class LedController
 {
 private:
   Led usedLeds[LED_QUANTITY];
-  unsigned int lastLed = 0;
+  unsigned long distanceToObject = 0;
   const unsigned int stride = 6;
+  unsigned int lastLed = 0;
 
 public:
   LedController()
@@ -106,35 +107,41 @@ public:
 
   void addLed(unsigned int pin)
   {
-    usedLeds[lastLed] = Led(pin);
-    lastLed++;
-  }
-
-  void updateLeds(unsigned long actualDistance)
-  {
-    for (int led = 0; led <= lastLed; led++)
+    if (lastLed < LED_QUANTITY)
     {
-      unsigned long fixedDistance = (led + 1) * stride;
-      controlLed(usedLeds[led], actualDistance, fixedDistance);
+      usedLeds[lastLed] = Led(pin);
+      lastLed++;
     }
   }
 
-  void controlLed(Led &led, unsigned long actualDistance, unsigned long fixedDistance)
+  void updateLeds(unsigned long distanceToObject)
   {
-    if (isInRange(actualDistance, fixedDistance))
-      led.turnOn();
-    else
-      led.turnOff();
+    this->distanceToObject = distanceToObject;
+    for (int ledPosition = 0; ledPosition <= lastLed; ledPosition++)
+      controlLed(ledPosition);
   }
 
-  bool isInRange(unsigned long actualDistance, unsigned long fixedDistance)
+  void controlLed(unsigned int ledPosition)
   {
-    return actualDistance < fixedDistance;
+    if (isInRange(ledPosition))
+      usedLeds[ledPosition].turnOn();
+    else
+      usedLeds[ledPosition].turnOff();
+  }
+
+  bool isInRange(unsigned int ledPosition)
+  {
+    return distanceToObject < getFixedDistance(ledPosition);
+  }
+
+  unsigned int getFixedDistance(unsigned int ledPosition)
+  {
+    return (ledPosition + 1) * stride;
   }
 };
 
-UltrasonicSensor ultrasonicSensor(2, 5); // Trigger on pin 10, echo on pin 11
 LedController ledController;
+UltrasonicSensor ultrasonicSensor(2, 5);
 
 void setup()
 {
@@ -147,7 +154,7 @@ void setup()
 
 void loop()
 {
-  unsigned int cm = ultrasonicSensor.getDistanceInCM();
+  unsigned long cm = ultrasonicSensor.getDistanceInCM();
   Utilities::serialPrintNonBlockingDelay(100, cm);
   ledController.updateLeds(cm);
 }
