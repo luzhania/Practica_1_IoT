@@ -48,12 +48,12 @@ public:
     return pulseIn(echoPin, HIGH);
   }
 
-  unsigned int getDistanceInCM()
+  unsigned long getDistanceInCM()
   {
     return 0.01723 * readDistance();
   }
 
-  unsigned int getDistanceInInches()
+  unsigned long getDistanceInInches()
   {
     return getDistanceInCM() / 2.54;
   }
@@ -97,12 +97,13 @@ class LedController
 private:
   Led usedLeds[LED_QUANTITY];
   unsigned long distanceToObject = 0;
-  const unsigned int stride = 6;
+  const unsigned int STRIDE = 6;
   unsigned int lastLed = 0;
 
 public:
   LedController()
   {
+    lastLed = 0;
   }
 
   void addLed(unsigned int pin)
@@ -131,17 +132,17 @@ public:
 
   bool isInRange(unsigned int ledPosition)
   {
-    return distanceToObject < getFixedDistance(ledPosition);
+    return distanceToObject <= getFixedDistance(ledPosition);
   }
 
   unsigned int getFixedDistance(unsigned int ledPosition)
   {
-    return (ledPosition + 1) * stride;
+    return (ledPosition + 1) * STRIDE;
   }
 };
 
 LedController ledController;
-UltrasonicSensor ultrasonicSensor(2, 5);
+UltrasonicSensor ultrasonicSensor(19, 22);
 
 void setup()
 {
@@ -150,6 +151,9 @@ void setup()
   ledController.addLed(14);
   ledController.addLed(26);
   ledController.addLed(33);
+  ledController.addLed(4);
+  ledController.addLed(5);
+  ledController.addLed(21);
 }
 
 void loop()
