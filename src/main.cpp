@@ -8,13 +8,13 @@ UltrasonicSensor ultrasonicSensor(19, 22);
 void setup()
 {
   Serial.begin(9600);
-  ledController.addLed(13);
+  ledController.addLed(12);
   ledController.addLed(14);
+  ledController.addLed(27);
   ledController.addLed(26);
+  ledController.addLed(25);
   ledController.addLed(33);
-  ledController.addLed(4);
-  ledController.addLed(5);
-  ledController.addLed(21);
+  ledController.addLed(32);  
 }
 
 void loop()
